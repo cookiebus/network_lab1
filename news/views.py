@@ -63,10 +63,10 @@ def getNews(html):
         title = html[html.find('<title>')+7:html.find('</title>')]
         New.objects.create(title=title, content=parse(html))
 
-    return imglist
+    return newlist
 
 
 def spider(request):
     html = getHtml("http://news.163.com/")
-    getNews(html)
-    return HttpResponse(json.dumps(getImg(html)))
+    newlist = getNews(html)
+    return HttpResponse(json.dumps(newlist))
