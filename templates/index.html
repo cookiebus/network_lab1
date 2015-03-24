@@ -3,7 +3,17 @@
 {% block title %}{{new.title}}{% endblock %}
 
 {% block content %}
-    <a class="btn btn-lg btn-success margin-up:100px pull-right" href="/new/{{id}}" role="button">下一条头条新闻</a>
-    <h1>{{new.title}}</h1>
-    {{new.content|safe}}
+
+    <div class="panel panel-primary justfiy" style="margin-top:20px">
+            <div class="panel-heading">
+              <h1 class="panel-title">{{new.title}}</h1>
+            </div>
+            <div class="panel-body">
+              
+              {{new.content|safe}}              
+              <a class="btn btn-lg btn-success margin-up:100px pull-right" href="/new/{{id}}" role="button">Next news</a>
+
+            </div>
+    </div>
+    
 {% endblock %}

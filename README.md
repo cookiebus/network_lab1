@@ -10,14 +10,16 @@ network lab1
     在终端执行:
     network_lab1 目录下执行
     ./install.sh
-    pip -r install requirements.txt
+    pip install -r requirements.txt
     创建数据库：
-    sudo su postgres psql
+    sudo su postgres 
+    psql
     create database news;
     create user news with password 'news';
 
     python manage.py syncdb //同步数据库
     python manage.py runserver　//本地运行
+    python manage.py runserver 0.0.0.0:8080
     
 ###
     127.0.0.1:8000/spider 运行爬虫程序
