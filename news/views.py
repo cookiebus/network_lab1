@@ -1,5 +1,6 @@
 # -*- coding:iso-8859-1 -*-
 from django.shortcuts import render, HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
 from news.models import New
 import urllib
 import re, json
@@ -31,7 +32,6 @@ def parse(content):
     content = content[start:end] + "</div></div>"
 
     while content.find("<iframe") != -1:
-        print content.find("iframe")
         start = content.find("<iframe")
         end = content.find("</iframe>")
         if start == -1 or end == -1:
@@ -41,7 +41,6 @@ def parse(content):
     start = content.find("<div class=\"ep-source cDGray\">")
     end = start + content[start:].find("</div>")
     content = content[:start] + content[end+6:]
-    print content[start:end]
 
     return content
 
@@ -61,11 +60,12 @@ def getNews(html):
     for newsurl in newlist:
         html = getHtml(newsurl)
         title = html[html.find('<title>')+7:html.find('</title>')]
+        title = title[:title.find("_网易新闻中心")]
         New.objects.create(title=title, content=parse(html))
 
     return newlist
 
-
+@staff_member_required
 def spider(request):
     html = getHtml("http://news.163.com/")
     newlist = getNews(html)
