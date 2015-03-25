@@ -1,6 +1,5 @@
 # -*- coding:iso-8859-1 -*-
 from django.shortcuts import render, HttpResponse
-from django.contrib.admin.views.decorators import staff_member_required
 from news.models import New
 import urllib
 import re, json
@@ -10,8 +9,17 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 # Create your views here.
-def next_new(request, id):
+def news(request, id):
     id = int(id)
+    cur_page = 0
+    news_list = New.objects.all()
+    for news in news_list:
+        cur_page += 1
+        if news.id == id:
+            break
+
+    cur_page = (cur_page - 1) / 7 + 1
+
     while id > 0:
         if New.objects.filter(id=id).exists():
             new = New.objects.get(id=id)
@@ -23,50 +31,44 @@ def next_new(request, id):
 
     id = new.id - 1
 
-    return render(request, 'index.html', locals())
+    return render(request, 'news.html', locals())
 
 
-def parse(content):
-    start = content.find("<div id=\"endText\" class=\"end-text\">")
-    end = content.find("本文来源")   
-    content = content[start:end] + "</div></div>"
+def is_chinese(uchar):
+    if uchar >= u'\u4e00' and uchar<=u'\u9fa5' \
+        and uchar not in ['年', '月', '日']:
+        return True
+    else:
+        return False
 
-    while content.find("<iframe") != -1:
-        start = content.find("<iframe")
-        end = content.find("</iframe>")
-        if start == -1 or end == -1:
-            break
-        content = content[:start] + content[end+9:]
+def page(request, page_id):
+    page_id = int(page_id)
+    if page_id < 0:
+        page_id = 1
 
-    start = content.find("<div class=\"ep-source cDGray\">")
-    end = start + content[start:].find("</div>")
-    content = content[:start] + content[end+6:]
+    start = (page_id - 1) * 7
+    end = page_id  * 7 
+    
+    max_page = (New.objects.count() - 1) / 7 + 1
 
-    return content
+    new_list = New.objects.all()[start:end]
+
+    for news in new_list:
+        preview = ''
+        total = 0
+        for ch in news.content:
+            if is_chinese(ch):
+                preview += ch
+                total += 1
+                if total > 50:
+                    break
+        news.preview = preview
+        news.save()
+    
+    pre_page = page_id - 1
+    next_page = page_id + 1
 
 
-def getHtml(url):
-    page = urllib.urlopen(url)
-    html = page.read()
-    return '%s' % html.decode('gbk').encode('utf-8')
+    return render(request, 'new_list.html', locals())
+    
 
-
-def getNews(html):
-    reg = r'http://news.163.com/\d+.+?\.html'
-    newre = re.compile(reg)
-    newlist = re.findall(newre,html)
-    x = 0
-    cnt = 0
-    for newsurl in newlist:
-        html = getHtml(newsurl)
-        title = html[html.find('<title>')+7:html.find('</title>')]
-        title = title[:title.find("_网易新闻中心")]
-        New.objects.create(title=title, content=parse(html))
-
-    return newlist
-
-@staff_member_required
-def spider(request):
-    html = getHtml("http://news.163.com/")
-    newlist = getNews(html)
-    return HttpResponse(json.dumps(newlist))

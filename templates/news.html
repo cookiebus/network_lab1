@@ -9,11 +9,12 @@
               <h1 class="panel-title">{{new.title}}</h1>
             </div>
             <div class="panel-body">
-              
-              {{new.content|safe}}              
-              <a class="btn btn-lg btn-success margin-up:100px pull-right" href="/new/{{id}}" role="button">Next news</a>
-
-            </div>
+              {{new.content|safe}} 
+              <div class="btn btn-group pull-right">
+              <a class="btn btn-info margin-up:100px" href="/page/{{cur_page}}" role="button">返回新闻列表</a>       
+              <a class="btn btn-info margin-up:100px" href="/news/{{id}}" role="button">再来一条</a>
+             </div>
+            </div> 
     </div>
     
 {% endblock %}
